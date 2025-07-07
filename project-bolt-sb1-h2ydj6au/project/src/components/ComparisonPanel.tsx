@@ -15,7 +15,7 @@ const ComparisonPanel: React.FC<ComparisonPanelProps> = ({ selectedFiles, onClea
   const [pairwiseResult, setPairwiseResult] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [comparisonType, setComparisonType] = useState<'pairwise' | 'against-all' | 'batch'>('pairwise');
-  const [minSimilarity, setMinSimilarity] = useState<number>(0);
+  const [minSimilarity, setMinSimilarity] = useState<number>(1);
   const [languageFilter, setLanguageFilter] = useState<string>('');
 
   const clearResults = () => {
@@ -257,7 +257,7 @@ const ComparisonPanel: React.FC<ComparisonPanelProps> = ({ selectedFiles, onClea
               type="number"
               value={minSimilarity}
               onChange={(e) => setMinSimilarity(Number(e.target.value))}
-              min="0"
+              min="1"
               max="100"
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
             />

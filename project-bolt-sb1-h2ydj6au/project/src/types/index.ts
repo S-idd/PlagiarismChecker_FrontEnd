@@ -46,3 +46,16 @@ export interface PaginationParams {
   languageFilter?: string;
   minSimilarity?: number;
 }
+
+export interface PageInfo {
+  number: number;          // Current page number (0-based)
+  size: number;            // Number of items per page
+  totalElements: number;   // Total items in the collection
+  totalPages: number;      // Total pages available
+}
+
+
+export interface FilesResponse {
+  content: CodeFile[];
+  page: PageInfo;
+}

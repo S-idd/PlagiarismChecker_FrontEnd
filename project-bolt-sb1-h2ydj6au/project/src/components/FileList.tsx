@@ -1,16 +1,26 @@
 import React, { useState } from 'react';
-import { FileText, Search, RefreshCw, Calendar, Code } from 'lucide-react';
-import { CodeFile, SupportedLanguage } from '../types';
+import { FileText, Search, RefreshCw, Calendar } from 'lucide-react';
+import { CodeFile, SupportedLanguage, FilesResponse } from '../types';
 import { LANGUAGE_CONFIGS, getFileIcon } from '../utils/fileValidation';
 
 interface FileListProps {
-  files: CodeFile[];
+  response: FilesResponse;
   onFileSelect: (file: CodeFile) => void;
   onRefresh: () => void;
   selectedFiles: CodeFile[];
+  currentPage: number;
+  onPageChange: (newPage: number) => void;
 }
 
-const FileList: React.FC<FileListProps> = ({ files, onFileSelect, onRefresh, selectedFiles }) => {
+const FileList: React.FC<FileListProps> = ({
+  response,
+  onFileSelect,
+  onRefresh,
+  selectedFiles,
+  currentPage,
+  onPageChange,
+}) => {
+  const files = response.content || [];
   const [searchTerm, setSearchTerm] = useState('');
   const [languageFilter, setLanguageFilter] = useState<string>('');
   const [sortBy, setSortBy] = useState<'name' | 'date' | 'language'>('date');
@@ -18,8 +28,8 @@ const FileList: React.FC<FileListProps> = ({ files, onFileSelect, onRefresh, sel
   const [isLoading, setIsLoading] = useState(false);
 
   const filteredFiles = files
-    .filter(file => 
-      file && 
+    .filter(file =>
+      file &&
       file.fileName &&
       typeof file.fileName === 'string' &&
       file.fileName.toLowerCase().includes(searchTerm.toLowerCase()) &&
@@ -58,7 +68,7 @@ const FileList: React.FC<FileListProps> = ({ files, onFileSelect, onRefresh, sel
       month: 'short',
       day: 'numeric',
       hour: '2-digit',
-      minute: '2-digit'
+      minute: '2-digit',
     });
 
   return (
@@ -66,7 +76,7 @@ const FileList: React.FC<FileListProps> = ({ files, onFileSelect, onRefresh, sel
       <div className="flex items-center justify-between mb-6">
         <div>
           <h2 className="text-3xl font-bold text-gray-900 mb-2">File Library</h2>
-          <p className="text-gray-600">{files.length} files available for analysis</p>
+          <p className="text-gray-600">{response.page.totalElements} total files</p>
         </div>
         <button
           onClick={handleRefresh}
@@ -146,14 +156,22 @@ const FileList: React.FC<FileListProps> = ({ files, onFileSelect, onRefresh, sel
               }`}
             >
               <div className="flex items-start justify-between mb-3">
-                <div className="flex items-center space-x-3">
-                  <span className="text-2xl">{getFileIcon(file.fileName || 'unnamed')}</span>
+                <div className="flex items-center space-x-3 w-full overflow-hidden">
+                  <span className="text-2xl shrink-0">{getFileIcon(file.fileName || 'unnamed')}</span>
                   <div className="flex-1 min-w-0">
-                    <h3 className="font-medium text-gray-900 truncate">{file.fileName || 'Unnamed file'}</h3>
-                    <p className="text-sm text-gray-500">ID: {file.id}</p>
+                    <h3
+                      className="font-medium text-gray-900 truncate max-w-full overflow-hidden text-ellipsis"
+                      title={file.fileName || 'Unnamed file'}
+                    >
+                      {file.fileName || 'Unnamed file'}
+                    </h3>
                   </div>
                 </div>
-                <span className={`px-2 py-1 rounded-full text-xs font-medium ${LANGUAGE_CONFIGS[file.language as SupportedLanguage]?.color || 'bg-gray-100 text-gray-700'}`}>
+                <span
+                  className={`px-2 py-1 rounded-full text-xs font-medium ${
+                    LANGUAGE_CONFIGS[file.language as SupportedLanguage]?.color || 'bg-gray-100 text-gray-700'
+                  }`}
+                >
                   {file.language}
                 </span>
               </div>
@@ -162,10 +180,6 @@ const FileList: React.FC<FileListProps> = ({ files, onFileSelect, onRefresh, sel
                 <div className="flex items-center">
                   <Calendar className="h-4 w-4 mr-2" />
                   {formatDate(file.createdAt || new Date().toISOString())}
-                </div>
-                <div className="flex items-center">
-                  <Code className="h-4 w-4 mr-2" />
-                  {Object.keys(file.trigram_vector || {}).length} trigrams
                 </div>
               </div>
 
@@ -179,6 +193,29 @@ const FileList: React.FC<FileListProps> = ({ files, onFileSelect, onRefresh, sel
           ))}
         </div>
       )}
+
+      {/* Pagination Controls */}
+      <div className="flex justify-center items-center space-x-4 mt-6">
+        <button
+          disabled={response.page.number <= 0}
+          onClick={() => onPageChange(response.page.number - 1)}
+          className="px-3 py-1 bg-gray-200 rounded disabled:opacity-50"
+        >
+          &lt; Prev
+        </button>
+
+        <span className="text-gray-600">
+          Page {response.page.number + 1} of {response.page.totalPages}
+        </span>
+
+        <button
+          disabled={response.page.number + 1 >= response.page.totalPages}
+          onClick={() => onPageChange(response.page.number + 1)}
+          className="px-3 py-1 bg-gray-200 rounded disabled:opacity-50"
+        >
+          Next &gt;
+        </button>
+      </div>
     </div>
   );
 };

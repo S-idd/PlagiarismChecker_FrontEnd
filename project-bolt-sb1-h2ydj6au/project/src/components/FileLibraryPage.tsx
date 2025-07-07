@@ -1,16 +1,16 @@
 import React, { useEffect, useState } from 'react';
 import FileList from './FileList';
-import { getAllFiles } from '../services/api';  // Make sure this calls your GET /files endpoint
-import { CodeFile } from '../types';
+import { getAllFiles } from '../services/api';
+import { CodeFile, FilesResponse } from '../types';
 
 const FileLibraryPage: React.FC = () => {
-  const [files, setFiles] = useState<CodeFile[]>([]);
+  const [filesResponse, setFilesResponse] = useState<FilesResponse | null>(null);
   const [selectedFiles, setSelectedFiles] = useState<CodeFile[]>([]);
 
   const fetchFiles = async () => {
     try {
-      const fetchedFiles = await getAllFiles();
-      setFiles(fetchedFiles);
+      const fetchedResponse: FilesResponse = await getAllFiles();
+      setFilesResponse(fetchedResponse); // ✅ store full response
     } catch (error) {
       console.error('Error fetching files:', error);
     }
@@ -21,7 +21,6 @@ const FileLibraryPage: React.FC = () => {
   }, []);
 
   const handleFileSelect = (file: CodeFile) => {
-    // Add or remove from selectedFiles
     setSelectedFiles(prev =>
       prev.some(f => f.id === file.id)
         ? prev.filter(f => f.id !== file.id)
@@ -31,12 +30,16 @@ const FileLibraryPage: React.FC = () => {
 
   return (
     <div className="p-6">
-      <FileList
-        files={files}                  // THIS is what FileList uses
-        onFileSelect={handleFileSelect}
-        onRefresh={fetchFiles}         // called when clicking Refresh in FileList
-        selectedFiles={selectedFiles}
-      />
+      {filesResponse && (
+        <FileList
+          response={filesResponse}            // ✅ pass full response instead of files
+          onFileSelect={handleFileSelect}
+          onRefresh={fetchFiles}
+          selectedFiles={selectedFiles}
+          currentPage={filesResponse.page.number}
+          onPageChange={() => {}}             // implement pagination logic here if needed
+        />
+      )}
     </div>
   );
 };
