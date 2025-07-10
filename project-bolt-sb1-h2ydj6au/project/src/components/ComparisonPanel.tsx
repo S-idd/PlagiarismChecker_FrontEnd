@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { GitCompare, Loader2, AlertCircle, CheckCircle, Users, Target } from 'lucide-react';
 import { CodeFile, SimilarityResult, BatchCompareRequest } from '../types';
-import {  compareAgainstAll, compareFiles } from '../services/api';
+import {  compareAgainstAll, compareBatch, compareFiles } from '../services/api';
 import { getSimilarityColor, getSimilarityLabel, getFileIcon } from '../utils/fileValidation';
 
 interface ComparisonPanelProps {
@@ -78,28 +78,19 @@ const ComparisonPanel: React.FC<ComparisonPanelProps> = ({ selectedFiles, onClea
       const targetFile = selectedFiles[0];
       const otherFileIds = selectedFiles.slice(1).map(file => file.id);
 
-      // Perform pairwise comparisons between the target file and each other selected file
-      const results: SimilarityResult[] = [];
-      for (const fileId of otherFileIds) {
-        try {
-          const similarity = await compareFiles(targetFile.id, fileId);
-          results.push({
-            fileId,
-            fileName: selectedFiles.find(f => f.id === fileId)?.fileName || '',
-            language: selectedFiles.find(f => f.id === fileId)?.language || '',
-            similarity,
-          });
-        } catch (err) {
-          // Optionally handle individual errors here
-        }
-      }
-      setComparisonResults(results);
+      const response = await compareBatch(
+        targetFile.id,
+        otherFileIds,
+        languageFilter || undefined,
+        minSimilarity || undefined
+      );
+      setComparisonResults(response);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to perform batch comparison');
     } finally {
       setIsComparing(false);
     }
-  };
+  };                                    
 
   const handleCompare = () => {
     switch (comparisonType) {
