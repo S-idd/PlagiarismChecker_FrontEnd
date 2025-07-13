@@ -51,7 +51,8 @@ const ComparisonPanel: React.FC<ComparisonPanelProps> = ({ selectedFiles, onClea
     try {
       // Adjusted to match the expected API signature: (fileId: number, page: number, size: number, languageFilter?: string, minSimilarity?: number)
       const page = 0;
-      const size = 100;
+      const size =1000000; // Large enough to fetch all results
+      // Use languageFilter and minSimilarity only if they are set
       const response = await compareAgainstAll(
         selectedFiles[0].id,
         page,
